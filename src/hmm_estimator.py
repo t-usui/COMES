@@ -6,6 +6,7 @@ from ghmm import *
 import sys
 import database
 
+
 class Estimator:
     def __init__(self):
         self.model_msvc = None

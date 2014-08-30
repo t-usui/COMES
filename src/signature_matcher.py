@@ -1,14 +1,15 @@
 #!/usr/bin/env python
 #-*- coding:utf-8 -*-
 
-import sys
 import os
-import commands
 import re
+import subprocess
+import sys
 
-BEELZEBUB_PATH = './Beelzebub'
+BEELZEBUB_PATH = 'C:\\Users\\tusui\\Desktop\\Beelzebub\\beelzebub.exe'
 
 class SignatureMatcher:
+    
     def __init__(self):
         pattern_major_ = 'MajorLinkerVersion: (.+)'
         pattern_minor_ = 'MinorLinkerVersion: (.+)'
@@ -21,7 +22,8 @@ class SignatureMatcher:
     def match_linker_version(self, file_name):
         major = None
         minor = None
-        result = commands.getoutput('%s %s' % (BEELZEBUB_PATH, file_name))
+        print subprocess.check_output(BEELZEBUB_PATH)
+        result = subprocess.check_output(BEELZEBUB_PATH + ' ' + file_name)
         match = self.p_major_.search(result)
         if match is not None:
             major = match.group(1)
@@ -66,7 +68,7 @@ class SignatureMatcher:
         p_vc = re.compile(pattern_msvc)
         p_delphi = re.compile(pattern_delphi)
 
-        string_result = commands.getoutput('strings %s' % file_name)
+        string_result = subprocess.check_output('strings %s' % file_name)
         if p_vc.search(string_result) is not None:
             compiler_name = 'Microsoft Visual C/C++'
         elif p_delphi.search(str) is not None:
@@ -83,24 +85,19 @@ class SignatureMatcher:
         print string_result
         # In production
 
-    def print_help_and_exit(self):
-        print 'Error: argc'
-        print 'Usage: python signature_matcher.py <directory_path>'
-        sys.exit()
+#    def print_help_and_exit(self):
+#        print 'Error: argc'
+#        print 'Usage: python signature_matcher.py <directory_path>'
+#        sys.exit()
 
 if __name__ == '__main__':
     matcher = SignatureMatcher()
 
-    argv = sys.argv
-    argc = len(argv)
-    if argc != 2:
-        matcher.print_help_and_exit()
-
-    dir_name = argv[1]
+    dir_name = 'C:\Users\\tusui\git\COMES\exe'
     file_list = os.listdir(dir_name)
 
     for f in file_list:
-        print f
-        print matcher.match_linker_version(dir_name + '/' + file)
-        print matcher.match_string(dir_name + '/' + file)
+        print dir_name + os.sep + f
+        print matcher.match_linker_version(dir_name + os.sep + f)
+        print matcher.match_string(dir_name + os.sep + f)
         print '----'
