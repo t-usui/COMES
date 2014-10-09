@@ -14,6 +14,7 @@ class IDAAsmParser(object):
         pass
         
     def update_disassemble_flag(self, line, flag):
+        # patterns to detect the start and end of subroutines
         pattern_subroutine_start = '^sub_[0-9A-Z]+?\t.+'
         pattern_subroutine_end = '^sub_[0-9A-Z]+?\tendp'
         pattern_winmain_start = '^WinMain.+'
@@ -23,6 +24,7 @@ class IDAAsmParser(object):
         pattern_start = '^start:'
         pattern_ends = '[a-zA-Z0-9]+\t\tends'
         
+        # compile all patterns
         p_sub_start = re.compile(pattern_subroutine_start)
         p_sub_end = re.compile(pattern_subroutine_end)
         p_main_start = re.compile(pattern_subroutine_start)
@@ -31,7 +33,10 @@ class IDAAsmParser(object):
         p_endp = re.compile(pattern_endp)
         p_start = re.compile(pattern_start)
         p_ends = re.compile(pattern_ends)
-
+        
+        # switch the flag of state machine
+        # flag = 0: go out of a subroutine
+        # flag = 1: get into a subroutine
         if p_sub_start.search(line) is not None and flag == 0:
             flag = 1
         elif p_sub_end.search(line) is not None and flag == 1:
@@ -58,16 +63,22 @@ class IDAAsmParser(object):
         pattern_instruction = '^\t\t([a-zA-Z0-9]+)(\t([a-zA-Z0-9:@_+\[\] ]+)(,\s([a-zA-Z0-9:@_+\[\] ]+))?)?'
         p_inst = re.compile(pattern_instruction)
         
+        # state machine:
+        # disas_flag = 0 -> not a instruction line (because it is out of subroutines)
+        # disas_flag = 1 -> regard line as a instruction (because it is in subroutines)
         disas_flag = 0
         with open(file_name, 'r') as f:
             for line in f:
                 if disas_flag == 1:
                     m = p_inst.search(line)
                     if m is not None:
+                        # if start from 'db', 'dw', 'dd', regard as data, not a instruction
                         if m.group(1) != 'db' and m.group(1) != 'dw' and m.group(1) != 'dd':
                             opcode, operand1, operand2 = m.group(1), m.group(3), m.group(5)
                             instruction_list.append([opcode, operand1, operand2])
+                # update disas_flag of state machine
                 disas_flag = self.update_disassemble_flag(line, disas_flag)
+                
         return instruction_list
     
     def extract_code_block(self, file_name):
@@ -82,7 +93,6 @@ class IDAAsmParser(object):
         
         subroutine_name, location_name = None, None
         disas_flag = 0
-        
         with open(file_name, 'r') as f:
             for line in f:
                 disas_flag = self.update_disassemble_flag(line, disas_flag)
@@ -105,10 +115,12 @@ class IDAAsmParser(object):
     
     def extract_opcode(self, file_name):
         opcode_list = []
-        
         instruction_list = self.extract_instruction(file_name)
+        
+        # extract only opcode part (instruction[0]) from instruction_list
         for instruction in instruction_list:
             opcode_list.append(instruction[0])
+            
         return opcode_list
 
 if __name__ == '__main__':

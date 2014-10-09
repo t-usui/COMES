@@ -150,9 +150,9 @@ if __name__ == '__main__':
     # print estimator.calculate_accuracy(training_label, result)
     """
 
-    data_file = 'bag-of-opcodes.dat'    
+    # data_file = 'bag-of-opcodes.dat'    
     # data_file = '2-gram.dat'
-    # data_file = '3-gram.dat'
+    data_file = '3-gram.dat'
     # data_file = '1-gram.txt'
     # data_file = '2-gram.txt'
     # data_file = '3-gram.txt'

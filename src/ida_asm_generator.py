@@ -22,16 +22,24 @@ class IDAAsmGenerator(object):
         self.move_asm(file_name)
     
     def generate_asm(self, file_name):
-        generate_command = self.ida_executable + ' -B ' + self.exe_path + os.sep + file_name
+        generate_command = self.ida_executable + ' -B ' + os.path.join(self.exe_path, file_name)
         subprocess.check_output(generate_command)
         
     def remove_idb(self, file_name):
-        idb_file_name = file_name.split('.')[0] + '.idb'
-        os.remove(self.exe_path + os.sep + idb_file_name)
+        # change the extension to '.idb'
+        root, ext = os.path.splitext(file_name)
+        idb_file_name = root + '.idb'
+        
+        # remove .idb file
+        os.remove(os.path.join(self.exe_path, idb_file_name))
         
     def move_asm(self, file_name):
-        asm_file_name = file_name.split('.')[0] + '.asm'
-        shutil.move(os.getcwd() + os.sep + asm_file_name, self.asm_path + os.sep + asm_file_name)
+        # change the extension to '.asm'
+        root, ext = os.path.splitext(file_name)
+        asm_file_name = root + '.asm'
+        
+        # move .asm file from current directory to asm_path directory
+        shutil.move(os.path.join(os.getcwd(), asm_file_name), os.path.join(self.asm_path, asm_file_name))
         
 if __name__ == '__main__':
     generator = IDAAsmGenerator()

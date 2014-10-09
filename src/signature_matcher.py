@@ -2,11 +2,13 @@
 #-*- coding:utf-8 -*-
 
 import os
+import platform
 import re
 import subprocess
 import sys
 
-BEELZEBUB_PATH = 'C:\\Users\\tusui\\Desktop\\Beelzebub\\beelzebub.exe'
+BEELZEBUB_PATH = '..\\beelzebub.exe'
+STRINGS_PATH = '..\\jstrings.exe'
 
 class SignatureMatcher:
     
@@ -22,7 +24,7 @@ class SignatureMatcher:
     def match_linker_version(self, file_name):
         major = None
         minor = None
-        print subprocess.check_output(BEELZEBUB_PATH)
+        
         result = subprocess.check_output(BEELZEBUB_PATH + ' ' + file_name)
         match = self.p_major_.search(result)
         if match is not None:
@@ -34,9 +36,12 @@ class SignatureMatcher:
 
     def distinguish_linker_version(self, major, minor):
         if major is not None and minor is not None:
+            major = major.rstrip(os.linesep)
+            minor = minor.rstrip(os.linesep)
+            
             if major == '2' and minor == '19':
                 compiler_name = 'Delphi'
-            elif major == '2':
+            elif major == '2' and minor == '17':
                 compiler_name = 'MinGW'
             elif major == '5' and minor == '0':
                 compiler_name = 'Borland C/C++'
@@ -67,37 +72,55 @@ class SignatureMatcher:
         pattern_delphi = 'This program must be run under Win32'
         p_vc = re.compile(pattern_msvc)
         p_delphi = re.compile(pattern_delphi)
-
-        string_result = subprocess.check_output('strings %s' % file_name)
+        
+        if platform.system() == 'Windows':
+            # IF running on Windows, use jstrings.exe
+            string_command = STRINGS_PATH + ' --ascii < ' + file_name
+        elif platform.system() == 'Linux' or platform.system() == 'Darwin':
+            # If running on Linux or MacOSX, use strings command
+            string_command = 'strings ' + file_name
+        else:
+            print 'Unknown OS detected'
+            sys.exit()
+            
+        string_result = subprocess.check_output(string_command, shell=True)
         if p_vc.search(string_result) is not None:
-            compiler_name = 'Microsoft Visual C/C++'
-        elif p_delphi.search(str) is not None:
-            compiler_name = 'Delphi'
+            compiler_name = 'Microsoft Visual C++ or MinGW'
+        elif p_delphi.search(string_result) is not None:
+            compiler_name = 'Borland C/C++ or Delphi'
         else:
             compiler_name = 'Unknown'
-            # print file + ': ' + major + '.' + minor + ' ' + compiler_name
         return compiler_name
 
     def match_full_signature(self, file_name):
         linker_version_result = self.match_linker_version(file_name)
         string_result = self.match_string(file_name)
-        print linker_version_result
-        print string_result
+        
+        return linker_version_result, string_result
         # In production
+        
+    def estimate(self, path):
+        if os.path.isfile(path):
+            return self.match_full_signature(path)
+        elif os.path.isdir(path):
+            result_list = []
+            for file_name in os.listdir(path):
+                result = self.match_full_signature(os.path.join(path, file_name))
+                result_list.append(result)
+            return result_list
+        else:
+            print 'Error: Unknown file name or file path'
+            sys.exit()
 
-#    def print_help_and_exit(self):
-#        print 'Error: argc'
-#        print 'Usage: python signature_matcher.py <directory_path>'
-#        sys.exit()
+    def print_help_and_exit(self):
+        print 'Error: argc'
+        print 'Usage: python signature_matcher.py <file_name/directory_path>'
+        sys.exit()
 
 if __name__ == '__main__':
     matcher = SignatureMatcher()
 
-    dir_name = 'C:\Users\\tusui\git\COMES\exe'
-    file_list = os.listdir(dir_name)
-
-    for f in file_list:
-        print dir_name + os.sep + f
-        print matcher.match_linker_version(dir_name + os.sep + f)
-        print matcher.match_string(dir_name + os.sep + f)
-        print '----'
+    path = 'C:\\Users\\tusui\\git\\COMES\\beelzebub.exe'
+    result = matcher.estimate(path)
+    print result[0]
+    print result[1]

@@ -4,6 +4,4 @@
 .settings/
 asm/*
 exe/*
-csv/*
 learn/*
-src/*.pyc
