@@ -13,30 +13,8 @@ import os
 import sys
 
 
-def batch():
-    datproc = DataProcessor()
-    
-    """
-    # datproc.update_database('C:\\Users\\tusui\\git\\COMES\\asm\\MinGW\\O0\\astar_demo.asm', 'MinGW', 'O0')
-    datproc.update_database_from_dir()
-    """
-    
-    
-    label_list, feature_vector_list = datproc.extract_all_data()
-    output_file_name = '..' + os.sep + 'learn' + os.sep + '3-gram.dat'
-    datproc.save_svmlight_format_file(output_file_name, label_list,
-                                      feature_vector_list)
-    
-    
-    """
-    feature_vector, label = datasets.load_svmlight_file('..' + os.sep + 'learn' + os.sep + 'bag-of-opcodes.dat')
-    print feature_vector
-    print label
-    """
-    
-
 if __name__ == '__main__':
-    argparser = argparse.ArgumentParser(description='Basic machine learning program.')
+    argparser = argparse.ArgumentParser(description='Basic compiler estimation program.')
     argparser.add_argument('-u',  # or '--update-db'
                            dest='update',
                            nargs=2,
@@ -70,11 +48,8 @@ if __name__ == '__main__':
         datproc.update_database_from_dir()
         
     if parse_result.extract is True:
-        label_list, feature_vector_list = datproc.extract_all_data()
-        
-        if parse_result.output is not None:
-            save_file_name = parse_result.output
-            save_svmlight_format_file(output_file_name, label_list, feature_vector_list)
+        save_file_name = parse_result.output
+        datproc.save_all_data_in_svmlight_format(output_file_name, label_list, feature_vector_list)
             
     if parse_result.learn is True:
         estimator = SVMEstimator()

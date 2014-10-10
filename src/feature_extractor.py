@@ -114,11 +114,3 @@ class FeatureExtractor(object):
             sys.exit()
         
         return feature_vector
-
-
-if __name__ == '__main__':
-    extractor = FeatureExtractor()
-    
-    for i in range(1, 184):
-        ngram = extractor.extract_feature_vector(i, 'bag-of-opcodes')
-        print ngram
