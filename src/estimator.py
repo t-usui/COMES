@@ -13,7 +13,43 @@ import subprocess
 import sys
 
 
-class Estimator(object):
+class CompilerEstimator(object):
+    
+    def __init__(self):
+        self.classifier = None
+    
+    def __del__(self):
+        pass
+    
+    def set_classifier(self, classifier):
+        self.classifier = classifier
+        
+    def estimate(self, feature_value):
+        pass
+
+
+class OptimizationLevelEstimator(object):
+    
+    def __init__(self):
+        pass
+    
+    def __del__(self):
+        pass
+    
+    def set_classifiers(self, classifier):
+        self.first_layer_classifier = classifier[0]
+    
+    def first_layer_classification(self):
+        pass
+    
+    def second_layer_classification(self):
+        pass
+    
+    def estimate(self):
+        pass
+
+
+class Classifier(object):
     
     def __init__(self):
         self.base_model = None
@@ -55,9 +91,9 @@ class Estimator(object):
     def make_data_for_grid_search(self, data, test_size=0.2, random_state=0):
         development_set, evaluation_set = cross_validation.train_test_split(data, test_size, random_state)
         return development_set, evaluation_set
+
     
-    
-class SVMEstimator(Estimator):
+class SVMClassifier(Classifier):
     
     def set_base_model(self):
         self.base_model = svm.SVC()
@@ -75,7 +111,7 @@ class SVMEstimator(Estimator):
         return result
 
     
-class RandomForestEstimator(Estimator):
+class RandomForestClassifier(Classifier):
     
     def set_base_model(self):
         self.base_model = ensemble.RandomForestClassifier()
@@ -86,7 +122,7 @@ class RandomForestEstimator(Estimator):
     def estimate(self, test_data, model):
         pass
     
-class BoostedDTEstimator(Estimator):
+class BoostedDTClassifier(Classifier):
     
     def set_base_model(self):
         self.base_model = ensemble.AdaBoostClassifier()
@@ -97,7 +133,7 @@ class BoostedDTEstimator(Estimator):
     def estimate(self, test_data, model):
         pass
     
-class BoostedNBEstimator(Estimator):
+class BoostedNBClassifier(Classifier):
     
     def train(self, training_data, training_label):
         pass
