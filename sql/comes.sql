@@ -8,6 +8,7 @@ DROP TABLE IF EXISTS instruction_code_block;
 DROP TABLE IF EXISTS corrupted_instruction_sequence;
 DROP TABLE IF EXISTS compiler_information;
 DROP TABLE IF EXISTS optimization_level_information;
+DROP TABLE IF EXISTS string_signature;
 
 CREATE TABLE opcode_variety (
     id 			integer NOT NULL AUTO_INCREMENT PRIMARY KEY,
@@ -66,4 +67,10 @@ CREATE TABLE compiler_information (
 CREATE TABLE optimization_level_information (
 	file_name			varchar(64) NOT NULL UNIQUE KEY,
 	optimization_level	varchar(32) NOT NULL
+);
+
+CREATE TABLE string_signature (
+    id					integer AUTO_INCREMENT PRIMARY KEY,
+    compiler_name		varchar(32),
+    string_signature	varchar(64)
 );

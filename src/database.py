@@ -104,6 +104,14 @@ class DatabaseConstructor(Database):
         sql_statement = 'INSERT INTO optimization_level_information (file_name, optimization_level) VALUES ("%s", "%s")'
         self.query_insert(sql_statement % (file_name, optimization_level))
 
+    def insert_string_signature(self, compiler, string_signature):
+        sql_statement = 'INSERT INTO string_signature (compiler_name, string_signature) VALUES ("%s", "%s")'
+        self.query_insert(sql_statement % (compiler, string_signature))
+        
+    def insert_string_signature_from_dict(self, string_signature_dict):
+        for signature, compiler in string_signature_dict.items():
+            self.insert_string_signature(compiler, signature)
+        
 
 class DatabaseHandler(Database):
         
@@ -219,3 +227,14 @@ class DatabaseHandler(Database):
         
         optimization_level = self.query_select(sql_statement % id)[0][0]
         return optimization_level
+    
+    def extract_string_signature(self):
+        string_signature_dict = {}
+        sql_statement = 'SELECT compiler_name, string_signature FROM string_signature'
+        
+        result = self.query_select(sql_statement)
+        for row in result:
+            compiler = row[0]
+            signature = row[1]
+            string_signature_dict[signature] = compiler
+        return string_signature_dict

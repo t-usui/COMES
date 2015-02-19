@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 #-*- coding:utf-8 -*-
 
+from database import DatabaseHandler
 import os
 import platform
 import re
@@ -21,7 +22,7 @@ class SignatureMatcher:
     def __del__(self):
         pass
 
-    def match_linker_version(self, file_name):
+    def extract_linker_version(self, file_name):
         major = None
         minor = None
         
@@ -32,9 +33,9 @@ class SignatureMatcher:
         match = self.p_minor_.search(result)
         if match is not None:
             minor = match.group(1)
-        return self.distinguish_linker_version(major, minor)
+        return major, minor
 
-    def distinguish_linker_version(self, major, minor):
+    def match_linker_version_signature(self, major, minor):
         if major is not None and minor is not None:
             major = major.rstrip(os.linesep)
             minor = minor.rstrip(os.linesep)
@@ -63,11 +64,23 @@ class SignatureMatcher:
             return compiler_name
         else:
             if major is None:
-                print 'Error: could not extract major linker version'
+                print 'Error: could not extract MajorLinkerVersion'
             if minor is None:
-                print 'Error: could not extract minor linker version'
+                print 'Error: could not extract MinorLinkerVersion'
 
-    def match_string(self, file_name):
+    @staticmethod
+    def extract_string(file_name):
+        command = 'strings -a ' + file_name
+        string_list = subprocess.check_output(command, shell=True).split('\n')
+        string_list.remove('')
+        
+        return string_list
+
+    def match_string_signature_old(self, file_name):
+        """
+        This method will be duplicated
+        """
+
         pattern_msvc = 'This program cannot be run in DOS mode'
         pattern_delphi = 'This program must be run under Win32'
         p_vc = re.compile(pattern_msvc)
@@ -91,12 +104,25 @@ class SignatureMatcher:
         else:
             compiler_name = 'Unknown'
         return compiler_name
+    
+    def match_string_signature(self):
+        """
+        TODO: Examination of voting method
+        """
+        db_handler = DatabaseHandler()
+        
+        string_list = self.extract_string(file_name)
+        string_signature_dict = db_handler.extract_string_signature()
+        for sig in string_signature_dict.keys():
+            if sig in string_list:
+                return string_signature_dict[sig]
 
     def match_full_signature(self, file_name):
-        linker_version_result = self.match_linker_version(file_name)
-        string_result = self.match_string(file_name)
+        major, minor = self.extract_linker_version(file_name)
+        linker_version_signature_result = self.match_linker_version_signature(major, minor)
+        string_signature_result = self.match_string_signature(file_name)
         
-        return linker_version_result, string_result
+        return linker_version_signature_result, string_signature_result
         # In production
         
     def estimate(self, path):
