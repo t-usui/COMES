@@ -74,3 +74,8 @@ CREATE TABLE string_signature (
     compiler_name		varchar(32),
     string_signature	varchar(64)
 );
+
+CREATE TABLE unfiltered_opcode (
+    id		integer AUTO_INCREMENT PRIMARY KEY,
+    opcode	varchar(16)
+);

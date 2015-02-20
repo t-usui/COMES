@@ -4,8 +4,8 @@
 from ida_asm_parser import IDAAsmParser
 from database import DatabaseConstructor, DatabaseHandler
 from data_processor import DataProcessor
-from estimator import SVMEstimator, RandomForestEstimator
-from estimator import BoostedNBEstimator, BoostedDTEstimator
+from estimator import SVMClassifier, RandomForestClassifier
+from estimator import BoostedNBClassifier, BoostedDTClassifier
 from feature_extractor import FeatureExtractor
 from sklearn import datasets
 import argparse

@@ -25,10 +25,24 @@ class FeatureExtractor(object):
     def set_ngram_variety(self, ngram_variety_list):
         self.ngram_variety_ = ngram_variety_list
         
-    def set_ngram_variety_from_database(self, num):
+    def set_ngram_variety_from_database(self, N):
         db_handler = DatabaseHandler()
-        ngram_variety_list = db_handler.extract_ngram_variety(num)
+        ngram_variety_list = db_handler.extract_ngram_variety(N)
         self.set_ngram_variety(ngram_variety_list)
+        
+    def reduce_ngram_variety(self, unfiltered_opcode_list):
+        """
+        Not tested yet
+        """
+        for ngram in self.ngram_variety_:
+            filter_flag = True
+            
+            for opcode in ngram:
+                if opcode in unfiltered_opcode_list:
+                    filtered_flag = False
+            
+            if filter_flag is True:
+                self.ngram_variety_.remove(ngram)
         
     def extract_bag_of_opcodes(self, opcode_sequence):
         each_opcode_count = {}
@@ -50,40 +64,51 @@ class FeatureExtractor(object):
         
         return bag_of_opcodes
     
-    def extract_ngram_sequence(self, opcode_sequence, num):
+    def extract_ngram_sequence(self, opcode_sequence, N):
         ngram_sequence = []
         
         ngram = []
-        for i in range(len(opcode_sequence) - num):
+        for i in range(len(opcode_sequence) - N):
             del ngram[:]
-            for j in range(num):
+            for j in range(N):
                 ngram.append(opcode_sequence[i + j])
-            ngram_sequence.append(tuple(ngram))         # Convert to immutable object, tuple
+            ngram_sequence.append(tuple(N))         # Convert to immutable object, tuple
             
         return ngram_sequence
     
-    def extract_ngram_list(self, opcode_sequence, num):
+    def extract_ngram_list(self, opcode_sequence, N):
         """
         Eliminate duplication from ngram_sequence
         """
-        ngram_sequence = self.extract_ngram_sequence(opcode_sequence, num)
+        ngram_sequence = self.extract_ngram_sequence(opcode_sequence, N)
         ngram_list = list(set(ngram_sequence))          # eliminate duplication
         
         return ngram_list
        
     # def extract_ngram(self, opcode_sequence, subroutine_sequence, num):
-    def extract_ngram(self, opcode_sequence, num):
+    def extract_ngram(self, opcode_sequence, N, reduce_dimension=False, unfiltered_opcode_list=None):
         each_ngram_count = {}
         ngram_feature_vector = []
         
-        ngram_sequence = self.extract_ngram_sequence(opcode_sequence, num)
+        ngram_sequence = self.extract_ngram_sequence(opcode_sequence, N)
         for ngram in ngram_sequence:
             if each_ngram_count.has_key(ngram):
                 each_ngram_count[ngram] += 1
             else:
                 each_ngram_count[ngram] = 1
                 
-        self.set_ngram_variety_from_database(num)
+        self.set_ngram_variety_from_database(N)
+        
+        # TODO: test around dimension reduction
+        if reduce_dimension is True:
+            if unfiltered_opcode_list is None:
+                print 'Unfiltered opcode list is not specified'
+                
+                db_handler = DatabaseHandler()
+                unfiltered_opcode_list = db_handler.extract_unfiltered_opcode()
+                print 'Extracted from database'
+                
+            self.reduce_ngram_variety(unfiltered_opcode_list)
                 
         for variety in self.ngram_variety_:     # set ngram_variety_ before here
             if variety in each_ngram_count:

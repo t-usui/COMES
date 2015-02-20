@@ -124,13 +124,13 @@ class DatabaseHandler(Database):
             opcode_variety.append(row[0])
         return opcode_variety
     
-    def extract_ngram_variety(self, num):
-        if num == 2:
+    def extract_ngram_variety(self, N):
+        if N == 2:
             ngram_variety = self.extract_bigram_variety()
-        elif num == 3:
+        elif N == 3:
             ngram_variety = self.extract_trigram_variety()
         else:
-            print 'Error: no ngram_variety database for %d found' % num
+            print 'Error: no ngram_variety database for N=%d found' % N
             sys.exit()
         return ngram_variety
     
@@ -151,6 +151,16 @@ class DatabaseHandler(Database):
         for row in result:
             trigram_variety.append((row[0], row[1], row[2]))
         return trigram_variety
+
+    def extract_unfiltered_opcode(self):
+        unfiltered_opcode_list = []
+        sql_statement = 'SELECT opcode FROM unfiltered_opcode'
+        
+        result = self.query_select(sql_statement)
+        for row in result:
+            unfiltered_opcode_list.append(row[0])
+        return unfiltered_opcode_list
+        
 
     def extract_instruction_sequence(self, sql_statement):
         instruction_sequence = []
