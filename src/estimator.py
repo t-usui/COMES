@@ -1,22 +1,43 @@
 #!/usr/bin/env python
 #-*- coding:utf-8 -*-
 
+from abc import ABCMeta, abstractmethod
+import json
 from sklearn import cross_validation
 from sklearn import datasets
 from sklearn import ensemble
 from sklearn import grid_search
 from sklearn import metrics
 from sklearn import svm
+from sklearn.externals import joblib
 import numpy as np
 import os
 import subprocess
 import sys
 
 
-class CompilerEstimator(object):
+class Estimator(object):
+    __metaclass__ = ABCMeta
     
     def __init__(self):
-        self.classifier = None
+        pass
+    
+    def __del__(self):
+        pass
+    
+    @abstractmethod
+    def set_classifier(self, classifier):
+        pass
+    
+    @abstractmethod
+    def estimate(self, feature_value):
+        pass
+    
+
+class CompilerEstimator(Estimator):
+    
+    def __init__(self, classifier=None):
+        self.classifier = classifier
     
     def __del__(self):
         pass
@@ -25,10 +46,15 @@ class CompilerEstimator(object):
         self.classifier = classifier
         
     def estimate(self, feature_value):
-        pass
+        if self.classifier.model_ is None:
+            sys.stderr.write('Error: please develop the model before estimation')
+            sys.exit()
+         
+        result = self.classifier.classify(feature_value)
+        return result
 
 
-class OptimizationLevelEstimator(object):
+class OptimizationLevelEstimator(Estimator):
     
     def __init__(self):
         pass
@@ -50,14 +76,16 @@ class OptimizationLevelEstimator(object):
 
 
 class Classifier(object):
+    __metaclass__ = ABCMeta
     
     def __init__(self):
-        self.base_model = None
-        self.model = None
+        self.base_model_ = None
+        self.model_ = None
     
     def __del__(self):
         pass
     
+    @abstractmethod
     def set_base_model(self):
         """
         Should be overwritten by derived class
@@ -72,15 +100,21 @@ class Classifier(object):
     def cross_validation(self):
         pass
     
+    def load_param_grid(self, file_name, algorithm):
+        with open(file_name, 'r') as f:
+            param_grid = json.load(f)
+        return param_grid[algorithm]
+    
     def conduct_grid_search(self, param_grid, training_data, training_label):
-        if self.base_model is None:
+        if self.base_model_ is None:
             self.set_base_model()
-        if self.base_model is None:
+        if self.base_model_ is None:
             sys.stderr.write('Error: set_base_model is not implemented properly.')
             sys.exit()
             
-        clf = grid_search.GridSearchCV(self.base_model, param_grid, n_jobs=-1, cv=5, scoring='accuracy')
+        clf = grid_search.GridSearchCV(self.base_model_, param_grid, n_jobs=-1, cv=5, scoring='accuracy')
         clf.fit(training_data, training_label)
+        self.model = clf.best_estimator_
         
         print clf.grid_scores_
         print clf.best_estimator_
@@ -91,12 +125,18 @@ class Classifier(object):
     def make_data_for_grid_search(self, data, test_size=0.2, random_state=0):
         development_set, evaluation_set = cross_validation.train_test_split(data, test_size, random_state)
         return development_set, evaluation_set
+    
+    def dump_model(self, file_path):
+        joblib.dump(self.model_, file_path)
+        
+    def load_model(self, file_path):
+        self.model_ = joblib.load(file_path)
 
     
 class SVMClassifier(Classifier):
     
     def set_base_model(self):
-        self.base_model = svm.SVC()
+        self.base_model_ = svm.SVC()
     
     def train(self, training_data, training_label):
         model = svm.libsvm.fit(np.array(training_data),
@@ -104,9 +144,9 @@ class SVMClassifier(Classifier):
                                kernel='linear')
         self.model = model
         
-    def estimate(self, test_data, model):
+    def classify(self, feature_vector):
         result = svm.libsvm.predict(np.array(test_data),
-                                    *self.model,
+                                    *self.model_,
                                     kernel='linear')
         return result
 
@@ -114,7 +154,7 @@ class SVMClassifier(Classifier):
 class RandomForestClassifier(Classifier):
     
     def set_base_model(self):
-        self.base_model = ensemble.RandomForestClassifier()
+        self.base_model_ = ensemble.RandomForestClassifier()
     
     def train(self, training_data, training_label):
         pass
@@ -125,7 +165,7 @@ class RandomForestClassifier(Classifier):
 class BoostedDTClassifier(Classifier):
     
     def set_base_model(self):
-        self.base_model = ensemble.AdaBoostClassifier()
+        self.base_model_ = ensemble.AdaBoostClassifier()
     
     def train(self, training_data, training_label):
         pass

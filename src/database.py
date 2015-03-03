@@ -34,13 +34,23 @@ class Database(object):
         result = self.cursor.fetchall()
         return result
 
-    def query_insert(self, sql_statement):
+    def query_insert(self, sql_statement, overwrite=False):
+        """
+        TODO: overwrite the duplicated entry if overwrite=True 
+        """
         if type(sql_statement) == types.ListType:
             for s in sql_statement:
-                self.cursor.execute(s)
+                try:
+                    self.cursor.execute(s)
+                except MySQLdb.cursors.IntegrityError:
+                    if overwrite == True:
+                        pass
         else:
-            print sql_statement
-            self.cursor.execute(sql_statement)
+            try:
+                self.cursor.execute(sql_statement)
+            except MySQLdb.cursors.IntegrityError:
+                if overwrite == True:
+                    pass
         self.connector.commit()
         
     def query_create(self, sql_statement):

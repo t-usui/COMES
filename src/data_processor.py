@@ -19,7 +19,7 @@ class DataProcessor(object):
     def __del__(self):
         pass
     
-    def update_database(self, file_path, compiler=None, optimization_level=None):
+    def update_database_from_file(self, file_path, compiler=None, optimization_level=None):
         file_name = os.path.basename(file_path)
         
         file_name += '_' + compiler + '_' + optimization_level
@@ -58,14 +58,12 @@ class DataProcessor(object):
             # Update optimization_level_information table
             db_constructor.insert_optimization_level_information(file_name, optimization_level)
             
-    def update_database_from_dir(self):
-        dir_name = os.path.join('..', 'asm')
-        
-        for compiler_name in os.listdir(dir_name):
-            for optimization_level in os.listdir(os.path.join(dir_name, compiler_name)):
-                for file_name in os.listdir(os.path.join(dir_name, compiler_name, optimization_level)):
-                    file_path = os.path.join(dir_name, compiler_name, optimization_level, file_name)
-                    self.update_database(file_name, compiler_name, optimization_level)
+    def update_database_from_dir(self, dir_path):
+        for compiler_name in os.listdir(dir_path):
+            for optimization_level in os.listdir(os.path.join(dir_path, compiler_name)):
+                for file_name in os.listdir(os.path.join(dir_path, compiler_name, optimization_level)):
+                    file_path = os.path.join(dir_path, compiler_name, optimization_level, file_name)
+                    self.update_database_from_file(file_path, compiler_name, optimization_level)
             
     def extract_data(self, id, extraction_method, label_type):
         extractor = FeatureExtractor()
@@ -73,11 +71,22 @@ class DataProcessor(object):
         
         if label_type == 'compiler':
             label = self.extract_compiler_label(id)                 # for compiler estimation
-        elif label_type == 'optimization level':
+        elif label_type == 'optimization_level':
             label = self.extract_optimization_level_label(id)       # for optimization level estimation
+        elif label_type == 'test':
+            return feature_vector                                   # for test data
         else:
             sys.stderr.write('Unknown label type specified')
             sys.exit()
+        
+        return label, feature_vector
+    
+    def extract_data_from_file(self, file_name, extraction_method, label_type):
+        db_handler = DatabaseHandler()
+        
+        id = db_handler.lookup_id_from_file_name(file_name)
+        label, feature_vector = self.extract_data(id, extraction_method,
+                                                  label_type)
         
         return label, feature_vector
     
@@ -127,11 +136,10 @@ class DataProcessor(object):
             sys.exit()
                 
     def save_all_data_in_svmlight_format(self,
-                                         file_name,
+                                         file_path,
                                          extraction_method,
                                          label_type):
         label_list, feature_vector_list = self.extract_all_data(extraction_method, label_type)
-        file_path = os.path.join('..', 'learn', file_name)
         with open(file_path, 'wb') as f:
             datasets.dump_svmlight_file(feature_vector_list, label_list, f)
         

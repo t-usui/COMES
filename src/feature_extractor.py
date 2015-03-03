@@ -72,7 +72,7 @@ class FeatureExtractor(object):
             del ngram[:]
             for j in range(N):
                 ngram.append(opcode_sequence[i + j])
-            ngram_sequence.append(tuple(N))         # Convert to immutable object, tuple
+            ngram_sequence.append(tuple(ngram))         # Convert to immutable object, tuple
             
         return ngram_sequence
     
@@ -135,7 +135,7 @@ class FeatureExtractor(object):
         elif extraction_method == '3-gram':
             feature_vector = self.extract_ngram(opcode_sequence, 3)
         else:
-            print 'Error: no extraction method "' + extraction_method + '" found.'
+            sys.stderr.write('Error: no extraction method "' + extraction_method + '" found.')
             sys.exit()
         
         return feature_vector
