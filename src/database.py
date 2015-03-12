@@ -171,7 +171,6 @@ class DatabaseHandler(Database):
             unfiltered_opcode_list.append(row[0])
         return unfiltered_opcode_list
         
-
     def extract_instruction_sequence(self, sql_statement):
         instruction_sequence = []
 
@@ -197,16 +196,14 @@ class DatabaseHandler(Database):
     
     def extract_opcode_sequence(self, id = None, file_name = None):
         if id is None and file_name is None:
-            print 'Error: id or file_name is required'
+            sys.stderr.write('Error: id or file_name is required')
             sys.exit()
         elif file_name is not None:
             lookup_id = self.lookup_id_from_file_name(file_name)
             if id is not None and lookup_id != id:
                 print 'Warning: id looked up from file name does not match specified id'
                 print 'looked up id is adopted'
-            else:
-                id = lookup_id
-                
+            id = lookup_id
             
         opcode_sequence = []
         sql_statement = 'SELECT opcode FROM instruction_sequence, file_name WHERE instruction_sequence.file_name = file_name.file_name AND id = %s'
@@ -215,6 +212,42 @@ class DatabaseHandler(Database):
         for row in result:
             opcode_sequence.append(row[0])
         return opcode_sequence
+    
+    def extract_subroutine_sequence(self, id = None, file_name = None):
+        if id is None and file_name is None:
+            sys.stderr.write('Error: id or file_name is required')
+            sys.exit()
+        elif file_name is not None:
+            lookup_id = self.lookup_id_from_file_name(file_name)
+            if id is not None and lookup_id != id:
+                sys.stderr.write('Warning: id looked up from file name does not match specified id')
+                sys.stderr.write('looked up id is adopted')
+            id = lookup_id
+            
+        subroutine_sequence = []
+        sql_statement = 'SELECT subroutine FROM instruction_code_block, file_name WHERE instruction_code_block.file_name = file_name.file_name AND file_name.id = %s'
+        result = self.query_select(sql_statement % id)
+        for row in result:
+            subroutine_sequence.append(row[0])
+        return subroutine_sequence
+    
+    def extract_location_sequence(self, id = None, file_name = None):
+        if id is None and file_name is None:
+            sys.stderr.write('Error: id or file_name is required')
+            sys.exit()
+        elif file_name is not None:
+            lookup_id = self.lookup_id_from_file_name(file_name)
+            if id is not None and lookup_id != id:
+                sys.stderr.write('Warning: id looked up from file name does not match specified id')
+                sys.stderr.write('looked up id is adopted')
+            id = lookup_id
+            
+        location_sequence = []
+        sql_statement = 'SELECT location FROM instruction_code_block, file_name WHERE instruction_code_block.file_name = file_name.file_name AND file_name.id = %s'
+        result = self.query_select(sql_statement % id)
+        for row in result:
+            location_sequence.append(row[0])
+        return location_sequence
     
     def extract_compiler(self, id = None, file_name = None):
         if id is None and file_name is None:
@@ -258,3 +291,4 @@ class DatabaseHandler(Database):
             signature = row[1]
             string_signature_dict[signature] = compiler
         return string_signature_dict
+ 

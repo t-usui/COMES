@@ -10,3 +10,4 @@ asm/*
 conf/*
 feature/*
 model/*
+src/*.pyc

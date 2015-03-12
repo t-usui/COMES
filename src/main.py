@@ -6,6 +6,8 @@ from database import DatabaseConstructor, DatabaseHandler
 from data_processor import DataProcessor
 from estimator import SVMClassifier, RandomForestClassifier
 from estimator import BoostedNBClassifier, BoostedDTClassifier
+from estimator import LogisticRegressionClassifier, LinearSVMClassifier
+from estimator import NaiveBayesClassifier
 from feature_extractor import FeatureExtractor
 from sklearn import datasets
 import argparse
@@ -60,6 +62,12 @@ def learn(args):
         estimator = BoostedNBClassifier()
     elif algorithm == 'boost+DT':
         estimator = BoostedDTClassifier()
+    elif algorithm == 'LR':
+        estimator = LogisticRegressionClassifier()
+    elif algorithm == 'LinearSVM':
+        estimator = LinearSVMClassifier()
+    elif algorithm == 'NB':
+        estimator = NaiveBayesClassifier()
     else:
         sys.stderr.write('Error: no classifier %s found' % algorithm)
         sys.exit()
@@ -157,7 +165,8 @@ if __name__ == '__main__':
     parser_learn.add_argument('-a',
                               dest='algorithm',
                               action='store',
-                              choices=['SVM', 'RF', 'boost+NB', 'boost+DT'],
+                              choices=['SVM', 'RF', 'boost+NB', 'boost+DT',
+                                       'LR', 'LinearSVM', 'NB'],
                               default=None,
                               help='algorithm (default RF)'
                               )
@@ -199,14 +208,14 @@ if __name__ == '__main__':
                               required=True,
                               help='input exe file name'
                               )
-    parser_extract.add_argument('-e',
+    parser_estimate.add_argument('-e',
                                 dest='extraction_method',
                                 action='store',
                                 choices=['bag-of-opcodes', '2-gram', '3-gram'],
                                 default=None,
                                 help='extraction method (default 3-gram)'
                                 )
-    parser_extract.add_argument('-l',
+    parser_estimate.add_argument('-l',
                                 dest='label_type',
                                 action='store',
                                 default=None,

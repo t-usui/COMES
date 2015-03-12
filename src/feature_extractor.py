@@ -2,7 +2,8 @@
 #-*- coding:utf-8 -*-
 
 from database import DatabaseHandler
-
+import nltk
+import numpy
 
 class FeatureExtractor(object):
     
@@ -117,6 +118,47 @@ class FeatureExtractor(object):
                 ngram_feature_vector.append(0)
                 
         return ngram_feature_vector
+    
+    def extract_sequence_length(self, sequence):
+        length_list = []
+        
+        current_element = None
+        length = 0
+        for element in sequence:
+            if current_element is None:
+                current_element = element
+            if current_element == element:
+                length += 1
+            else:
+                length_list.append(length)
+                current_element = element
+                length = 1
+                
+        return length_list
+    
+    def extract_subroutine_length(self, subroutine_sequence):
+        return self.extract_sequence_length(subroutine_sequence)
+    
+    def extract_basicblock_length(self, location_sequence):
+        return self.extract_sequence_length(location_sequence)
+    
+    def calculate_average_sequence_length(self, length_list):
+        length_array = numpy.array(length_list)
+        average_sequence_length = numpy.average(length_array)
+        
+        return average_sequence_length
+    
+    def extract_average_subroutine_length(self, subroutine_sequence):
+        subroutine_length_list = self.extract_subroutine_length(subroutine_sequence)
+        average_subroutine_length = self.calculate_average_sequence_length(subroutine_length_list)
+        
+        return average_subroutine_length
+    
+    def extract_average_basicblock_length(self, location_sequence):
+        basicblock_length_list = self.extract_basicblock_length(location_sequence)
+        average_basicblock_length = self.calculate_average_basicblock_length(location_length_list)
+        
+        return average_basicblock_length
                     
     def your_feature_extraction_method_here(self):
         pass
@@ -134,8 +176,27 @@ class FeatureExtractor(object):
             feature_vector = self.extract_ngram(opcode_sequence, 2)
         elif extraction_method == '3-gram':
             feature_vector = self.extract_ngram(opcode_sequence, 3)
+        elif extraction_method == 'proposed':
+            subroutine_sequence = db_handler.extract_subroutine_sequence(file_id)
+            average_subroutine_length = self.extract_average_subroutine_length(subroutine_sequence)
+            location_sequence = db_handler.extract_location_sequence(file_id)
+            average_basicblock_length = self.extract_average_basicblock_length(location_sequence)
+            # construct feature_vector here
         else:
             sys.stderr.write('Error: no extraction method "' + extraction_method + '" found.')
             sys.exit()
         
         return feature_vector
+
+if __name__ == '__main__':
+    db_handler = DatabaseHandler()
+    opcode_sequence = db_handler.extract_opcode_sequence(500)
+    # bigrams = nltk.bigrams(opcode_sequence)
+    # fd = nltk.FreqDist(bigrams)
+    # cfd = nltk.ConditionalFreqDist(bigrams)
+    # cfd[u'cmp'].plot(50)
+    trigrams = nltk.trigrams(opcode_sequence)
+    print list(trigrams)
+    # fd = nltk.FreqDist(trigrams)
+    cfd = nltk.ConditionalFreqDist(trigrams)
+    cfd[u'cmp'].plot(50)

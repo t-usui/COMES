@@ -7,7 +7,9 @@ from sklearn import cross_validation
 from sklearn import datasets
 from sklearn import ensemble
 from sklearn import grid_search
+from sklearn import linear_model
 from sklearn import metrics
+from sklearn import naive_bayes
 from sklearn import svm
 from sklearn.externals import joblib
 import numpy as np
@@ -100,9 +102,39 @@ class Classifier(object):
     def cross_validation(self):
         pass
     
+    def decode_list(self, data_list):
+        decoded_list = []
+        
+        for item in data_list:
+            if isinstance(item, unicode):
+                item = item.encode('utf-8')
+            elif isinstance(item, list):
+                item = _decode_list(item)
+            elif isinstance(item, dict):
+                item = _decode_dict(item)
+            decoded_list.append(item)
+            
+        return decoded_list
+    
+    def decode_dict(self, data_dict):
+        decoded_dict = {}
+        
+        for key, value in data_dict.iteritems():
+            if isinstance(key, unicode):
+                key = key.encode('utf-8')
+            if isinstance(value, unicode):
+                value = self.value.encode('utf-8')
+            elif isinstance(value, list):
+                value = self.decode_list(value)
+            elif isinstance(value, dict):
+                value = self.decode_dict(value)
+            decoded_dict[key] = value
+        
+        return decoded_dict
+    
     def load_param_grid(self, file_name, algorithm):
         with open(file_name, 'r') as f:
-            param_grid = json.load(f)
+            param_grid = json.load(f, object_hook=self.decode_dict)
         return param_grid[algorithm]
     
     def conduct_grid_search(self, param_grid, training_data, training_label):
@@ -175,11 +207,32 @@ class BoostedDTClassifier(Classifier):
     
 class BoostedNBClassifier(Classifier):
     
+    def set_base_model(self):
+        self.base_model_ = ensemble.AdaBoostClassifier(base_estimator=naive_bayes.MultinomialNB())
+    
     def train(self, training_data, training_label):
         pass
     
     def estimate(self, test_data, model):
         pass
+    
+    
+class LogisticRegressionClassifier(Classifier):
+    
+    def set_base_model(self):
+        self.base_model_ = linear_model.LogisticRegression()
+
+
+class LinearSVMClassifier(Classifier):
+    
+    def set_base_model(self):
+        self.base_model_ = svm.LinearSVC()
+        
+
+class NaiveBayesClassifier(Classifier):
+    
+    def set_base_model(self):
+        self.base_model_ = naive_bayes.GaussianNB()
 
         
 if __name__ == '__main__':    
