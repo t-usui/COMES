@@ -112,7 +112,6 @@ class IDAFileParser(object):
                             code_block_list.append((subroutine_name, location_name))
         return code_block_list
                 
-    
     def extract_opcode(self, file_name):
         opcode_list = []
         instruction_list = self.extract_instruction(file_name)
@@ -122,10 +121,28 @@ class IDAFileParser(object):
             opcode_list.append(instruction[0])
             
         return opcode_list
+    
+    def extract_api(self, file_name):
+        api_list = []
+        
+        pattern = 'label: "([A-Za-z0-9_]+)"'
+        p = re.compile(pattern)
+        
+        with open(file_name, 'r') as f:
+            text = f.read()
+        for line in text.split('\n'):
+            m = p.search(line)
+            if m is not None:
+                api = m.group(1)
+                
+                # Except mangled user-defined functions
+                if api.startswith('__Z') is False:
+                    api_list.append(api)
+                    
+        return api_list
 
 if __name__ == '__main__':
-    parser = IDAAsmParser()
-    
+    parser = IDAFileParser()
 
     asm_file_dir = '..\\asm'
     

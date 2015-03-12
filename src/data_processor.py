@@ -19,12 +19,15 @@ class DataProcessor(object):
     def __del__(self):
         pass
     
-    def update_database_from_file(self, file_path, compiler=None, optimization_level=None):
-        file_name = os.path.basename(file_path)
-        
+    def update_database_from_file(self,
+                                  file_name,
+                                  asm_file_path,
+                                  gdl_file_path,
+                                  compiler=None,
+                                  optimization_level=None):
         file_name += '_' + compiler + '_' + optimization_level
         
-        parser = IDAAsmParser()
+        parser = IDAFileParser()
         extractor = FeatureExtractor()
         db_constructor = DatabaseConstructor()
         
@@ -32,15 +35,15 @@ class DataProcessor(object):
         db_constructor.insert_file_name(file_name)
         
         # Update instruction_sequence table
-        instruction_list = parser.extract_instruction(file_path)
+        instruction_list = parser.extract_instruction(asm_file_path)
         db_constructor.insert_instruction_sequence(file_name, instruction_list)
         
         # Update instruction_code_block table
-        code_block_list = parser.extract_code_block(file_path)
+        code_block_list = parser.extract_code_block(asm_file_path)
         db_constructor.insert_code_block(file_name, code_block_list)
         
         # Update opcode_variety table
-        opcode_list = parser.extract_opcode(file_path)
+        opcode_list = parser.extract_opcode(asm_file_path)
         db_constructor.append_opcode_variety(opcode_list)
         
         # Update bigram_variety table
@@ -50,6 +53,13 @@ class DataProcessor(object):
         # Update trigram_variety table
         trigram_list = extractor.extract_ngram_list(opcode_list, 3)
         db_constructor.append_trigram_variety(trigram_list)
+        
+        # Update api table
+        api_list = parser.extract_api(gdl_file_path)
+        db_constructor.insert_api(file_name, api_list)
+        
+        # Update api_variety table
+        db_constructor.append_api_variety(api_list)
         
         if compiler is not None:
             # Update compiler_information table
@@ -62,8 +72,9 @@ class DataProcessor(object):
         for compiler_name in os.listdir(dir_path):
             for optimization_level in os.listdir(os.path.join(dir_path, compiler_name)):
                 for file_name in os.listdir(os.path.join(dir_path, compiler_name, optimization_level)):
-                    file_path = os.path.join(dir_path, compiler_name, optimization_level, file_name)
-                    self.update_database_from_file(file_path, compiler_name, optimization_level)
+                    asm_file_path = os.path.join(dir_path, compiler_name, optimization_level, file_name, file_name + '.asm')
+                    gdl_file_path = os.path.join(dir_path, compiler_name, optimization_level, file_name, file_name + '.gdl')
+                    self.update_database_from_file(file_name, asm_file_path, gdl_file_path, compiler_name, optimization_level)
             
     def extract_data(self, id, extraction_method, label_type):
         extractor = FeatureExtractor()

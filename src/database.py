@@ -83,6 +83,14 @@ class DatabaseConstructor(Database):
             sql_statement_list.append(sql_statement % (trigram[0], trigram[1], trigram[2]))
         self.query_insert(sql_statement_list)
         
+    def append_api_variety(self, api_list):
+        sql_statement = 'INSERT IGNORE INTO api_variety (api) VALUES ("%s")'
+        sql_statement_list = []
+        
+        for api in api_list:
+            sql_statement_list.append(sql_statement % api)
+        self.query_insert(sql_statement_list)
+        
     def insert_file_name(self, file_name):
         sql_statement = 'INSERT INTO file_name (file_name) VALUES ("%s")'
         self.query_insert(sql_statement % file_name)
@@ -105,6 +113,14 @@ class DatabaseConstructor(Database):
                                                id,
                                                code_block_list[id][0],
                                                code_block_list[id][1]))
+            
+    def insert_instruction_sequence(self, file_name, api_list):
+        sql_statement = 'INSERT INTO api (api_id, file_name, api) VALUES (%d, "%s", "%s")'
+        
+        for id in xrange(len(api_list)):
+            self.query_insert(sql_statement % (id,
+                                               file_name,
+                                               api_list[id])
             
     def insert_compiler_information(self, file_name, compiler):
         sql_statement = 'INSERT INTO compiler_information (file_name, compiler) VALUES ("%s", "%s")'

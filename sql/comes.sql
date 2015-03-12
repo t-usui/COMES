@@ -2,8 +2,10 @@ USE COMES;
 DROP TABLE IF EXISTS opcode_variety;
 DROP TABLE IF EXISTS bigram_variety;
 DROP TABLE IF EXISTS trigram_variety;
+DROP TABLE IF EXISTS api_variety;
 DROP TABLE IF EXISTS file_name;
 DROP TABLE IF EXISTS instruction_sequence;
+DROP TABLE IF EXISTS api;
 DROP TABLE IF EXISTS instruction_code_block;
 DROP TABLE IF EXISTS corrupted_instruction_sequence;
 DROP TABLE IF EXISTS compiler_information;
@@ -30,6 +32,11 @@ CREATE TABLE trigram_variety (
 	UNIQUE (trigram1, trigram2, trigram3)
 );
 
+CREATE TABLE api_variety (
+	id			integer NOT NULL AUTO_INCREMENT PRIMARY KEY,
+	api			varchar(32) NOT NULL UNIQUE KEY
+);
+
 CREATE TABLE file_name (
 	id			integer NOT NULL AUTO_INCREMENT PRIMARY KEY,
 	file_name	varchar(64) NOT NULL UNIQUE KEY
@@ -41,6 +48,12 @@ CREATE TABLE instruction_sequence (
 	opcode			varchar(16) NOT NULL,
 	operand1		varchar(16),
 	operand2		varchar(16)
+);
+
+CREATE TABLE api (
+	file_name		varchar(64) NOT NULL,
+	api_id			integer NOT NULL,
+	api				varchar(32) NOT NULL
 );
 
 CREATE TABLE instruction_code_block (

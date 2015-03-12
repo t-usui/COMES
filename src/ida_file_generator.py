@@ -11,13 +11,16 @@ class IDAFileGenerator(object):
     def __init__(self):
         self.ida_executable = '"D:\\exe_x86\\IDA 6.5\\idaq.exe"'
         self.exe_path = '..\\exe'
-        self.asm_path = '..\\asm'
-        self.gdl_path = '..\\gdl'
+        self.data_path = '..\\data'
         
     def __del__(self):
         pass
     
     def generate(self, file_name):
+        # create directory to contain
+        root, ext = os.path.splitext(file_name)
+        os.mkdir(os.path.join('..', 'data', root))
+        
         # generate .asm file
         self.generate_asm(file_name)
         self.move_asm(file_name)
@@ -50,7 +53,7 @@ class IDAFileGenerator(object):
         
         # move .asm file from current directory to asm_path directory
         shutil.move(os.path.join(self.exe_path, asm_file_name),
-                    os.path.join(self.asm_path, asm_file_name))
+                    os.path.join(self.data_path, root, asm_file_name))
         
     def generate_gdl_gen_script_from_template(self, file_name, title=None):
         root, ext = os.path.splitext(file_name)
@@ -83,7 +86,7 @@ class IDAFileGenerator(object):
         gdl_file_name = root + '.gdl'
         
         shutil.move(os.path.join(self.exe_path, gdl_file_name),
-                    os.path.join(self.gdl_path, gdl_file_name))
+                    os.path.join(self.data_path, file_name, gdl_file_name))
         
 if __name__ == '__main__':
     generator = IDAFileGenerator()
