@@ -9,7 +9,7 @@ utilized to generate executable files.
 * SciPy
 * scikit-learn
 * MySQL-python
-* IDA Pro (by Hex-Rays)
+* IDA Pro and IDAPython (by Hex-Rays)
 
 For installing NumPy, SciPy and scikit-learn, utilizing Anaconda is strongly recommended.
 

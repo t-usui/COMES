@@ -5,7 +5,7 @@ import os
 import re
 
 
-class IDAAsmParser(object):
+class IDAFileParser(object):
     
     def __init__(self):
         pass
